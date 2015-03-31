@@ -1,0 +1,10 @@
+PUT key_1 value
+GET key_1
+GET key_2
+PUT key_2 value
+DELETE key_3
+DELETE key_1
+GET key_1
+UPDATE key_1 new value
+UPDATE key_2 new value
+GET key_2

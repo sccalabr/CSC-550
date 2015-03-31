@@ -1,0 +1,19 @@
+The way I viewed the architecture is as follows:
+	Master Distribution Layer - master.c
+		This will handle the input from users, CRUD functions
+		Decide which nodes get what data, pass messages around
+	Master Storage Layer - masterStorage.c
+		This will be the index table only. Will be called from the distribution layer
+		Should be independent from everything else, distribution layer will handle
+		communication with slave nodes
+	Master Backup Layer - masterStorage.c
+		Will handle restore and flush of the contents on/to disk
+
+	Slave Distribution Layer - slave.c
+		This will handle the finding a place to store data, and updating the available
+		locations list
+	Slave Storage Layer - slaveStorage.c
+		This will be the buffer (data array) that everything gets stored in. Will be
+		called from the distribution layer
+	Slave Backup Layer - masterStorage.c
+		Will handle restore and flush of the contents on/to disk

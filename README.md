@@ -1,1 +1,4 @@
-# CSC-550
+Mothership
+==========
+
+Main repository. Home of the Course Wiki

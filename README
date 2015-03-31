@@ -1,0 +1,173 @@
+/******************** SQUIRRELDB README *********************/
+Team members: 	Grant Frame, Ethan Frame, Stephen Calabrese, 
+		Nick Clarke, Nick Alereza, Luke Plewa
+
+LATEST UPDATE: 12/10/14
+
+README contents: 
+	- repository structure/files in repository
+	- how to run test suite tests
+	- how to run performance evaluation	
+
+/************************************************************/
+Repository Structure: There are three groups that files in 
+	the repository fit into. 
+	- squirrelDB files
+	- test suite files
+	- performance evaluation files 
+
+Files needed for squirrelDB to compile.
+-------------------------------------------------------------
+	masterStorage.c - file responsible for handling 
+		master meta-data table. It is responsible for
+		storing data in the meta-data table, deleting
+		data from the meta-data table and retrieving 
+		data from the meta-data table. It also 
+		contains code that restores the meta-data
+		table on startup, either to a previous save 
+		point or an empty state if no restore file
+		exists. It is also responsible for flushing 
+		the meta-data table to disk. 
+
+	masterStorage.h - header file for masterStorage.c.
+		Contains structure definitions for meta-data
+		table entries as well as structure for table
+		containing amount of free data on each node.
+		Also defined here is the max key length and
+		number of replication nodes. 
+		
+	MurmurHash3.c - hash function used by meta-data table.
+		We did not write this.
+ 
+	MurmurHash3.h - header file for MurmurHash3.c
+
+	packets.h - defines the operations sent by 
+		squirrelDBClient to master node, to
+		tell the master node which operation
+		the client would like to perform.
+
+	requests.c - most communications between slave and
+		master node are nonblocking. As such a 
+		pending request list is generated created
+		and the requests are tested to see if the 
+		node they were sent to is still active. If
+		they are then the request will be removed 
+		from the pending request list. If not then
+		a timer will go off, and every node that
+		still had a pending request will be marked
+		as not active. Also defined here is my_alarm
+		which sets up a timer.
+
+	requests.h - header file for requests.c. Defined here
+		are the timeout interval for pending requests
+		and the pending request structure. 
+
+	slaveStorage.c - file responsible for handling
+		data stored on slave. It runs the put,
+		get, update, and delete operations for
+		the data stored on a slave node. It is also
+		responsible for restoring a slave node to
+		a previous save point or to empty if no 
+		save point exists. It also handles flushing
+		all slave data to disk. 
+
+	slaveStorage.h - header file for slaveStorage.c. 
+		Defined here is the size of a block of data. 
+		Also defined is the structure of a data block.
+		The free block list node structure is also 
+		defined here. 
+
+	squirrelDB.c - intermediate code that runs the database.
+		Every node runs this code. If a node is the 
+		master then they setup a connection to the 
+		outside world and wait for commands. When a 
+		command is received the master figures out
+		what command it is, determines if it needs to
+		access the meta-data table. Then it tells the 
+		appropriate slave nodes what to do. Slave nodes
+		are running their own loop within the code and
+		waiting for instructions from the master. When
+		an instruction comes in they run the low level
+		code in slaveStorage.c and then return the 
+		results to the master. Heartbeats and flushing
+		to disk is handled in this file as well.
+
+	squirrelDB.h - header file for squirrelDB.c. Defined here
+		is the number of nodes, number of slave nodes, a 
+		list of active nodes, the timeout length for
+		heartbeats, and the number of heartbeats before
+		performing a flush to disk.		
+
+	squirrelDBClient.c - this code handles setting up a 
+		connection with the database for a client
+		and the transmission of queries to squirrelDB
+		as well as the response to a query by
+		squirrelDB. It also handles closing a connection
+		to squirrelDB. 
+
+	squirrelDBClient.h - header file for squirrelDBClient.c
+-------------------------------------------------------------
+
+Files for test suite
+-------------------------------------------------------------
+	test_1.c - performs test_1 of test_suite. Running
+		procedure found below.
+
+	test_2.c - performs test_2 of test_suite. Running
+		procedure found below.
+
+	test_3.c - performs test_3 of test_suite. Running
+		procedure found below.
+
+	flush_files/ - contents of this directory differ
+		depending on the vm. A node that is the
+		master will have different flush files
+		then a slave node. However, DO NOT MESS WITH
+		THESE FILES. These files are used during 
+		test_3.
+-------------------------------------------------------------
+
+Files for performance evaluation
+-------------------------------------------------------------
+	perf_eval_script - performance evaluation test 
+		script. (Won't run properly for large dataset
+		because too many entries in index table to 
+		fit in memory)
+
+-------------------------------------------------------------	
+
+/************************************************************/
+How to run test suite:
+	ssh into vm 26 using username eaframe and password 
+	eaframe560 on two terminals.
+	run 'cd ../SquirrelDB/Mothership' on both terminals
+	run 'make pull' on one terminal and enter credentials 
+	
+	-- TEST 1 --
+	run 'make test_1' on one terminal
+	wait until squirrelDB says that is is up and listening
+	for requests on port 8888. 
+	on other terminal run './test_1'
+
+	-- TEST 2 --
+	run 'make test_2' on one terminal
+	wait until squirrelDB says that is is up and listening
+	for requests on port 8888. 
+	on other terminal run './test_2'
+
+	-- TEST 3 --
+	run 'make test_3' on one terminal
+	wait until squirrelDB says that is is up and listening
+	for requests on port 8888. 
+	on other terminal run './test_3'
+
+/************************************************************/
+How to run performance evaluation:
+	ssh into vm 26 using username eaframe and password 
+	eaframe560 on two terminals.
+	run 'cd ../SquirrelDB/Mothership' on both terminals
+
+	Can ./run perf_eval_script but it takes a while. I 
+	suggest running nohup ./perf_eval_script &
+
+/************************************************************/

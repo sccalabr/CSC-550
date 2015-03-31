@@ -1,0 +1,46 @@
+HOSTS=cslvm26.csc.calpoly.edu,cslvm27.csc.calpoly.edu,cslvm28.csc.calpoly.edu,cslvm29.csc.calpoly.edu,cslvm30.csc.calpoly.edu
+
+OUT_DIR=/home/SquirrelDB/Mothership/perf_eval_out
+
+rm $OUT_DIR/*
+
+for mem_size in SMALL_STORAGE
+do 
+	for block_size in SMALL_BS
+	do 
+		for input_data in NUMERIC MEDIUM_LEN_STRS LONG_LEN_STRS
+		do
+			for flush_rate in FLUSH_RARELY 
+			do	
+				OUT_EXT=$mem_size.$block_size.$input_data.$flush_rate			
+				cd /home/SquirrelDB/Mothership
+				
+				make clean
+				
+				make clean_flush_files
+				
+				rm perf_eval 
+				
+				make perf_eval PERF_EVAL=-DPERF_EVAL STORAGE=-D$mem_size BLOCK_SIZE=-D$block_size  INPUT_DATA=-D$input_data FLUSH_RATE=-D$flush_rate
+				
+				make squirrelDB DEBUG=-DDEBUG PERF_EVAL=-DPERF_EVAL STORAGE=-D$mem_size BLOCK_SIZE=-D$block_size  INPUT_DATA=-D$input_data FLUSH_RATE=-D$flush_rate
+
+				cp squirrelDB ../
+				
+				scp squirrelDB eaframe@cslvm27.csc.calpoly.edu:../SquirrelDB
+	
+				scp squirrelDB eaframe@cslvm28.csc.calpoly.edu:../SquirrelDB
+
+				scp squirrelDB eaframe@cslvm29.csc.calpoly.edu:../SquirrelDB
+
+				scp squirrelDB eaframe@cslvm30.csc.calpoly.edu:../SquirrelDB
+
+				cd /home/SquirrelDB/ && /home/SquirrelDB/.openmpi/bin/mpirun -n 5 -mca plm_rsh_no_tree_spawn 1 --host $HOSTS squirrelDB > $OUT_DIR/squirrelDB_out.$OUT_EXT &
+				
+				/home/SquirrelDB/Mothership/perf_eval > $OUT_DIR/out.$OUT_EXT &
+
+				wait
+			done
+		done
+	done
+done
