@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
         response = squirrelDB_init(ADDR);
     } while(response == FAILURE);
         
-    printf("Connected to SquirrelDB\n");
+    printf("Connected to DRUMSDB\n");
     fflush(stdout);
 
     printf("---------- STARTING TEST_2 ----------\n");
